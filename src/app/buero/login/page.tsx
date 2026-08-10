@@ -13,7 +13,7 @@ export default async function BueroLoginPage({
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center gap-6 bg-white px-8 pt-16">
-      <Logo withTagline={false} />
+      <Logo className="w-28" />
       <div className="-mt-1 text-center">
         <div className="text-[22px] font-extrabold">SV24 OS</div>
         <div className="mt-1 text-[13px] text-text-secondary">Büro-App</div>

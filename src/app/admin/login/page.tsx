@@ -16,7 +16,7 @@ export default async function AdminLoginPage({
     <main className="flex min-h-screen items-center justify-center bg-content-bg px-4">
       <Card className="w-full max-w-[380px]" padded={false}>
         <div className="flex flex-col items-center gap-5 px-8 pb-8 pt-10">
-          <Logo withTagline={false} />
+          <Logo className="w-28" />
           <div className="text-center">
             <div className="text-[20px] font-extrabold">SV24 OS</div>
             <div className="mt-1 text-[13px] text-text-secondary">
