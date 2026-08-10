@@ -1,0 +1,319 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Enums
+// ---------------------------------------------------------------------------
+
+enum Role {
+  ADMIN
+  BUERO
+  INTERPRETER
+}
+
+enum Salutation {
+  HERR
+  FRAU
+}
+
+enum UserStatus {
+  AKTIV
+  EINGELADEN
+  INAKTIV
+}
+
+enum InterpreterStatus {
+  AKTIV
+  URLAUB
+  INAKTIV
+}
+
+enum ClientStatus {
+  AKTIV
+  INAKTIV
+}
+
+enum InvoiceStatus {
+  OFFEN
+  UEBERFAELLIG
+  BEZAHLT
+}
+
+enum EmailImportStatus {
+  NEU
+  IN_BEARBEITUNG
+  ABGELEHNT
+}
+
+// workflowStage per README: gesucht -> wartet -> bestaetigt | abgelehnt
+enum WorkflowStage {
+  GESUCHT
+  WARTET
+  BESTAETIGT
+  ABGELEHNT
+}
+
+enum DispatchStatus {
+  OFFEN
+  ZUGEWIESEN
+}
+
+enum JobStatus {
+  PENDING
+  CONFIRMED
+  COMPLETED
+  DECLINED
+}
+
+enum DocumentStatus {
+  AKTUELL
+  LAEUFT_AB
+  FEHLT
+}
+
+// ---------------------------------------------------------------------------
+// Core identity
+// ---------------------------------------------------------------------------
+
+model User {
+  id                String     @id @default(cuid())
+  email             String     @unique
+  passwordHash      String
+  name              String
+  role              Role
+  status            UserStatus @default(AKTIV)
+  mustResetPassword Boolean    @default(false)
+  lastLoginAt       DateTime?
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+
+  interpreter Interpreter?
+
+  notifications     Notification[]
+  pushSubscriptions PushSubscription[]
+  uploadedPayouts   Payout[]           @relation("PayoutUploadedBy")
+  uploadedDocuments Document[]         @relation("DocumentUploadedBy")
+
+  @@map("users")
+}
+
+// Central sequential ID allocator for D-xxxx interpreter IDs (README: "zentral
+// im Backend vergeben, nicht clientseitig generiert" — kept as its own row so
+// allocation can happen inside a transaction, independent of Interpreter rows
+// ever being deleted).
+model IdSequence {
+  key     String @id
+  current Int    @default(1000)
+
+  @@map("id_sequences")
+}
+
+model Interpreter {
+  id          String            @id @default(cuid())
+  humanId     String            @unique // "D-1001"
+  salutation  Salutation
+  name        String
+  initials    String
+  langs       String[]
+  status      InterpreterStatus @default(AKTIV)
+  rating      Decimal           @default(0) @db.Decimal(2, 1)
+  payoutTotal Decimal           @default(0) @db.Decimal(10, 2)
+  pushEnabled Boolean           @default(true)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  userId String? @unique
+  user   User?   @relation(fields: [userId], references: [id])
+
+  jobs               Job[]
+  dispatchJobs       DispatchJob[]
+  documents          Document[]
+  payouts            Payout[]
+  availability       Availability[]
+  emailImportMatches EmailImport[]
+
+  @@map("interpreters")
+}
+
+model Availability {
+  id            String      @id @default(cuid())
+  interpreterId String
+  interpreter   Interpreter @relation(fields: [interpreterId], references: [id], onDelete: Cascade)
+  date          DateTime    @db.Date
+  available     Boolean     @default(true)
+
+  @@unique([interpreterId, date])
+  @@map("availability")
+}
+
+model Client {
+  id        String       @id @default(cuid())
+  name      String       @unique
+  contact   String
+  status    ClientStatus @default(AKTIV)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  invoices     Invoice[]
+  dispatchJobs DispatchJob[]
+  jobs         Job[]
+
+  @@map("clients")
+}
+
+model Invoice {
+  id       String        @id @default(cuid())
+  number   String        @unique
+  clientId String
+  client   Client        @relation(fields: [clientId], references: [id])
+  date     DateTime      @db.Date
+  dueDate  DateTime      @db.Date
+  amount   Decimal       @db.Decimal(10, 2)
+  status   InvoiceStatus @default(OFFEN)
+
+  sevdeskInvoiceId String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("invoices")
+}
+
+// E-Mail-Import -> Matching -> Auto-Mail workflow
+model EmailImport {
+  id            String            @id @default(cuid())
+  residentName  String
+  regNr         String
+  source        String
+  contact       String
+  date          DateTime          @db.Date
+  time          String
+  language      String
+  location      String
+  note          String?
+  status        EmailImportStatus @default(NEU)
+  workflowStage WorkflowStage     @default(GESUCHT)
+
+  matchedInterpreterId String?
+  matchedInterpreter   Interpreter? @relation(fields: [matchedInterpreterId], references: [id])
+  matchScore           Int?
+
+  createdJobId String? @unique
+  createdJob   Job?    @relation(fields: [createdJobId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("email_imports")
+}
+
+model DispatchJob {
+  id            String         @id @default(cuid())
+  clientId      String
+  client        Client         @relation(fields: [clientId], references: [id])
+  interpreterId String?
+  interpreter   Interpreter?   @relation(fields: [interpreterId], references: [id])
+  langPair      String
+  date          DateTime       @db.Date
+  time          String
+  status        DispatchStatus @default(OFFEN)
+  suggestedName String?
+  matchScore    Int?
+  createdAt     DateTime       @default(now())
+
+  @@map("dispatch_jobs")
+}
+
+model Job {
+  id            String       @id @default(cuid())
+  clientId      String
+  client        Client       @relation(fields: [clientId], references: [id])
+  interpreterId String?
+  interpreter   Interpreter? @relation(fields: [interpreterId], references: [id])
+  langPair      String
+  type          String
+  date          DateTime     @db.Date
+  time          String
+  location      String
+  status        JobStatus    @default(PENDING)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  emailImport EmailImport?
+
+  @@map("jobs")
+}
+
+model Document {
+  id            String         @id @default(cuid())
+  interpreterId String
+  interpreter   Interpreter    @relation(fields: [interpreterId], references: [id], onDelete: Cascade)
+  name          String
+  status        DocumentStatus @default(FEHLT)
+  expiresAt     DateTime?      @db.Date
+  fileUrl       String?
+  uploadedAt    DateTime?
+  uploadedById  String?
+  uploadedBy    User?          @relation("DocumentUploadedBy", fields: [uploadedById], references: [id])
+
+  @@map("documents")
+}
+
+model Payout {
+  id            String      @id @default(cuid())
+  interpreterId String
+  interpreter   Interpreter @relation(fields: [interpreterId], references: [id], onDelete: Cascade)
+  period        String // e.g. "Juli 2026"
+  amount        Decimal     @db.Decimal(10, 2)
+  filename      String
+  fileUrl       String?
+  uploadedAt    DateTime    @default(now())
+  uploadedById  String?
+  uploadedBy    User?       @relation("PayoutUploadedBy", fields: [uploadedById], references: [id])
+
+  @@map("payouts")
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  text      String
+  link      String?
+  unread    Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  @@map("notifications")
+}
+
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+
+  @@map("push_subscriptions")
+}
+
+// Single-row settings table for integration prep (sevDesk / mail import).
+// Intentionally holds no live secrets in git; values come from env at
+// deploy time and are only mirrored here for the on/off status pill.
+model IntegrationSettings {
+  id                 Int      @id @default(1)
+  sevdeskConnected   Boolean  @default(false)
+  sevdeskOrgName     String?
+  emailImportEnabled Boolean  @default(false)
+  emailImportAddress String?
+  updatedAt          DateTime @updatedAt
+
+  @@map("integration_settings")
+}

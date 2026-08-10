@@ -1,0 +1,127 @@
+@import "tailwindcss";
+
+:root {
+  --color-content-bg: #f6f8f9;
+  --color-content-bg-mobile: #f5f6f8;
+  --color-card-bg: #ffffff;
+  --color-card-border: #edeef0;
+  --color-card-border-mobile: #eef0f2;
+  --color-text-primary: #14151a;
+  --color-text-secondary: #6b7280;
+  --color-text-tertiary: #9ca3af;
+  --color-navy: #16233a;
+  --color-navy-soft: #1c2b45;
+  --color-navy-border: #2a3a56;
+  --color-field-bg: #f5f6f8;
+  --color-field-bg-alt: #f6f8f9;
+  --color-field-border: #e4e6ea;
+
+  --color-pill-green-bg: #dcfce7;
+  --color-pill-green-fg: #15803d;
+  --color-pill-amber-bg: #fef3c7;
+  --color-pill-amber-fg: #b45309;
+  --color-pill-red-bg: #fee2e2;
+  --color-pill-red-fg: #b91c1c;
+  --color-pill-blue-bg: #dbeafe;
+  --color-pill-blue-fg: #1d4ed8;
+  --color-pill-gray-bg: #f1f2f4;
+  --color-pill-gray-fg: #4b5563;
+
+  --shadow-card-desktop: 0 1px 2px rgba(16, 24, 40, 0.03),
+    0 2px 4px rgba(16, 24, 40, 0.03), 0 14px 28px -14px rgba(16, 24, 40, 0.12);
+  --shadow-card-mobile: 0 1px 2px rgba(16, 24, 40, 0.04);
+}
+
+@theme inline {
+  --font-sans: var(--font-manrope);
+
+  --color-content-bg: var(--color-content-bg);
+  --color-content-bg-mobile: var(--color-content-bg-mobile);
+  --color-card-bg: var(--color-card-bg);
+  --color-card-border: var(--color-card-border);
+  --color-card-border-mobile: var(--color-card-border-mobile);
+  --color-text-primary: var(--color-text-primary);
+  --color-text-secondary: var(--color-text-secondary);
+  --color-text-tertiary: var(--color-text-tertiary);
+  --color-navy: var(--color-navy);
+  --color-navy-soft: var(--color-navy-soft);
+  --color-navy-border: var(--color-navy-border);
+  --color-field-bg: var(--color-field-bg);
+  --color-field-bg-alt: var(--color-field-bg-alt);
+  --color-field-border: var(--color-field-border);
+
+  --color-pill-green-bg: var(--color-pill-green-bg);
+  --color-pill-green-fg: var(--color-pill-green-fg);
+  --color-pill-amber-bg: var(--color-pill-amber-bg);
+  --color-pill-amber-fg: var(--color-pill-amber-fg);
+  --color-pill-red-bg: var(--color-pill-red-bg);
+  --color-pill-red-fg: var(--color-pill-red-fg);
+  --color-pill-blue-bg: var(--color-pill-blue-bg);
+  --color-pill-blue-fg: var(--color-pill-blue-fg);
+  --color-pill-gray-bg: var(--color-pill-gray-bg);
+  --color-pill-gray-fg: var(--color-pill-gray-fg);
+
+  --shadow-card-desktop: var(--shadow-card-desktop);
+  --shadow-card-mobile: var(--shadow-card-mobile);
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background: var(--color-content-bg);
+  color: var(--color-text-primary);
+  font-family: var(--font-manrope), system-ui, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+@keyframes bubbleRise {
+  0% {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  15% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  85% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes pushBannerIn {
+  from {
+    transform: translateY(-120%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-bubble {
+  animation: bubbleRise 5s ease-in infinite;
+}
+
+.animate-push-in {
+  animation: pushBannerIn 0.35s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background: #d7dbe0;
+  border-radius: 999px;
+}
