@@ -150,17 +150,25 @@ async function main() {
     }
   }
 
-  // Auszahlungen (nur Admin/Büro dürfen hochladen)
+  // Auszahlungen (nur Admin/Büro dürfen hochladen). Hochladedatum liegt
+  // bewusst im jeweiligen Auszahlungsmonat, damit Umsatz/Gewinn (MTD) auf
+  // dem Dashboard konsistent zueinander bleiben.
   const admin = await prisma.user.findUniqueOrThrow({ where: { email: "info@sprachvermittler24.de" } });
+  const payoutPeriods = [
+    { period: "Juni 2026", offset: -50, baseAmount: 380 },
+    { period: "Juli 2026", offset: -18, baseAmount: 520 },
+    { period: "August 2026", offset: -3, baseAmount: 480 },
+  ];
   for (const interpreter of interpreters.slice(0, 5)) {
-    for (const [i, period] of ["Juni 2026", "Juli 2026"].entries()) {
+    for (const { period, offset, baseAmount } of payoutPeriods) {
       await prisma.payout.create({
         data: {
           interpreterId: interpreter.id,
           period,
-          amount: 380 + i * 140 + Number(interpreter.payoutTotal) * 0.05,
+          amount: baseAmount + Number(interpreter.payoutTotal) * 0.03,
           filename: `gutschrift-${interpreter.humanId.toLowerCase()}-${period.replace(" ", "-").toLowerCase()}.pdf`,
           uploadedById: admin.id,
+          uploadedAt: isoDate(offset),
         },
       });
     }
@@ -242,9 +250,9 @@ async function main() {
 
   await prisma.dispatchJob.createMany({
     data: [
-      { clientId: clients[2].id, langPair: "DE ↔ SO", date: isoDate(4), time: "09:00", suggestedName: interpreters[5].name, matchScore: 92 },
-      { clientId: clients[4].id, langPair: "DE ↔ FA", date: isoDate(5), time: "15:30", suggestedName: interpreters[6].name, matchScore: 78 },
-      { clientId: clients[0].id, langPair: "DE ↔ TR", date: isoDate(6), time: "10:00", suggestedName: interpreters[0].name, matchScore: 95 },
+      { clientId: clients[2].id, interpreterId: interpreters[5].id, suggestedName: interpreters[5].name, langPair: "DE ↔ SO", date: isoDate(4), time: "09:00", matchScore: 92 },
+      { clientId: clients[4].id, interpreterId: interpreters[6].id, suggestedName: interpreters[6].name, langPair: "DE ↔ FA", date: isoDate(5), time: "15:30", matchScore: 78 },
+      { clientId: clients[0].id, interpreterId: interpreters[0].id, suggestedName: interpreters[0].name, langPair: "DE ↔ TR", date: isoDate(6), time: "10:00", matchScore: 95 },
     ],
   });
 
