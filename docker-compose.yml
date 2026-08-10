@@ -1,0 +1,36 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: sv24os
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-sv24os}
+      POSTGRES_DB: sv24os
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sv24os"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      # Overrides whatever DATABASE_URL is in .env — inside the compose
+      # network the DB is reachable at the service name, not localhost.
+      DATABASE_URL: postgresql://sv24os:${POSTGRES_PASSWORD:-sv24os}@db:5432/sv24os
+    ports:
+      - "3000:3000"
+    volumes:
+      - app-storage:/app/storage
+
+volumes:
+  db-data:
+  app-storage:
