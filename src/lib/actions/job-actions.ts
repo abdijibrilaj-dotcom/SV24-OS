@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { Role } from "@prisma/client";
+import type { Session } from "next-auth";
 import { notifyUser } from "@/lib/push";
 
 async function notifyOffice(text: string) {
@@ -14,15 +15,20 @@ async function notifyOffice(text: string) {
   await Promise.all(staff.map((u) => notifyUser(u.id, text)));
 }
 
+function canActOnJob(session: Session, interpreterId: string | null) {
+  if (session.user.role === Role.ADMIN || session.user.role === Role.BUERO) return true;
+  return !!session.user.interpreterId && session.user.interpreterId === interpreterId;
+}
+
 export async function confirmJobAction(jobId: string) {
   const session = await auth();
-  if (!session?.user.interpreterId) throw new Error("Keine Berechtigung.");
+  if (!session?.user) throw new Error("Keine Berechtigung.");
 
   const job = await prisma.job.findUniqueOrThrow({
     where: { id: jobId },
     include: { client: true, interpreter: true, emailImport: true },
   });
-  if (job.interpreterId !== session.user.interpreterId) throw new Error("Keine Berechtigung.");
+  if (!canActOnJob(session, job.interpreterId)) throw new Error("Keine Berechtigung.");
 
   await prisma.job.update({ where: { id: jobId }, data: { status: "CONFIRMED" } });
   if (job.emailImport) {
@@ -43,13 +49,13 @@ export async function confirmJobAction(jobId: string) {
 
 export async function declineJobAction(jobId: string) {
   const session = await auth();
-  if (!session?.user.interpreterId) throw new Error("Keine Berechtigung.");
+  if (!session?.user) throw new Error("Keine Berechtigung.");
 
   const job = await prisma.job.findUniqueOrThrow({
     where: { id: jobId },
     include: { client: true, interpreter: true, emailImport: true },
   });
-  if (job.interpreterId !== session.user.interpreterId) throw new Error("Keine Berechtigung.");
+  if (!canActOnJob(session, job.interpreterId)) throw new Error("Keine Berechtigung.");
 
   await prisma.job.update({ where: { id: jobId }, data: { status: "DECLINED" } });
   if (job.emailImport) {
