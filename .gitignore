@@ -37,6 +37,9 @@ yarn-error.log*
 # vercel
 .vercel
 
+# local file uploads (documents, payout PDFs) — use STORAGE_DIR in prod
+/storage
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
