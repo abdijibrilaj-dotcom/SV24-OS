@@ -4,6 +4,12 @@ import { AdminSidebar } from "@/components/admin/sidebar";
 import { AdminHeader } from "@/components/admin/header";
 import { initialsFromName } from "@/lib/ids";
 
+// Belt-and-suspenders alongside the auth() call below (which already
+// forces dynamic rendering): every admin page is live per-request data
+// and must never be prerendered at build time. See the equivalent buero
+// layout for why that matters for the Docker build specifically.
+export const dynamic = "force-dynamic";
+
 export default async function AdminLayout({
   children,
 }: {
