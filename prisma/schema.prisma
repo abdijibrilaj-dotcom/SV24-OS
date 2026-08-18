@@ -1,5 +1,7 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["queryCompiler", "driverAdapters"]
+  engineType      = "client"
 }
 
 datasource db {
@@ -77,6 +79,21 @@ enum DocumentStatus {
   FEHLT
 }
 
+// Leistungsarten für die Diversifizierung über reines Dolmetschen hinaus
+// (Sozialbetreuung, Sprachkurse, ...) — ein Fall kann mehrere davon haben.
+enum ServiceType {
+  DOLMETSCHEN
+  SOZIALBETREUUNG
+  SPRACHKURS
+  VERWALTUNGSBEGLEITUNG
+  SONSTIGES
+}
+
+enum ResidentStatus {
+  AKTIV
+  ABGESCHLOSSEN
+}
+
 // ---------------------------------------------------------------------------
 // Core identity
 // ---------------------------------------------------------------------------
@@ -99,6 +116,7 @@ model User {
   pushSubscriptions PushSubscription[]
   uploadedPayouts   Payout[]           @relation("PayoutUploadedBy")
   uploadedDocuments Document[]         @relation("DocumentUploadedBy")
+  caseNotes         CaseNote[]
 
   @@map("users")
 }
@@ -163,6 +181,7 @@ model Client {
   invoices     Invoice[]
   dispatchJobs DispatchJob[]
   jobs         Job[]
+  residents    Resident[]
 
   @@map("clients")
 }
@@ -316,4 +335,75 @@ model IntegrationSettings {
   updatedAt          DateTime @updatedAt
 
   @@map("integration_settings")
+}
+
+// Single-row reference rates. Deliberately NOT wired into invoice/payout
+// calculation yet — those are still entered by hand — this is only a
+// central place to record the current flat rate instead of it living
+// nowhere/only in someone's head. Wire it into actual billing once the
+// real calculation rules (per job? per hour? exceptions?) are confirmed.
+model PricingSettings {
+  id                    Int      @id @default(1)
+  clientRatePerJob      Decimal? @db.Decimal(10, 2)
+  interpreterRatePerJob Decimal? @db.Decimal(10, 2)
+  updatedAt             DateTime @updatedAt
+
+  @@map("pricing_settings")
+}
+
+// ---------------------------------------------------------------------------
+// Diversifizierung: Fallakten für Leistungen über das Dolmetschen hinaus
+// (Sozialbetreuung, Sprachkurse, ...). Bewusst schlank gehalten (freie
+// Notizen statt starrer Formulare) bis die tatsächlichen fachlichen
+// Anforderungen aus der echten Arbeit feststehen.
+// ---------------------------------------------------------------------------
+
+model Resident {
+  id        String         @id @default(cuid())
+  humanId   String         @unique // "F-1001"
+  name      String
+  langs     String[]
+  contact   String?
+  status    ResidentStatus @default(AKTIV)
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  clientId String?
+  client   Client? @relation(fields: [clientId], references: [id])
+
+  services ResidentService[]
+  notes    CaseNote[]
+
+  @@map("residents")
+}
+
+// Which service types are currently active for this person — e.g. someone
+// starts with DOLMETSCHEN and SOZIALBETREUUNG gets added later once that
+// side of the business exists.
+model ResidentService {
+  id         String      @id @default(cuid())
+  residentId String
+  resident   Resident    @relation(fields: [residentId], references: [id], onDelete: Cascade)
+  type       ServiceType
+  startedAt  DateTime    @default(now()) @db.Date
+  note       String?
+
+  @@unique([residentId, type])
+  @@map("resident_services")
+}
+
+// Chronological case history, tagged by which service the entry belongs
+// to so a resident's file stays readable even once they're getting
+// several kinds of support at once.
+model CaseNote {
+  id          String      @id @default(cuid())
+  residentId  String
+  resident    Resident    @relation(fields: [residentId], references: [id], onDelete: Cascade)
+  serviceType ServiceType
+  text        String
+  authorId    String?
+  author      User?       @relation(fields: [authorId], references: [id])
+  createdAt   DateTime    @default(now())
+
+  @@map("case_notes")
 }

@@ -1,13 +1,16 @@
 import Link from "next/link";
 import clsx from "clsx";
+import { Briefcase } from "lucide-react";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { MobileScreen } from "@/components/mobile/mobile-screen";
 import { InterpreterTabBar } from "@/components/interpreter/interpreter-tab-bar";
 import { CardMobile } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Pill } from "@/components/ui/pill";
 import { jobStatusMeta } from "@/lib/status";
 import { formatDateShort } from "@/lib/format";
+import { getUnreadCount } from "@/lib/queries/notifications";
 import type { JobStatus } from "@prisma/client";
 
 const FILTERS = [
@@ -28,16 +31,19 @@ export default async function InterpreterJobsPage({
   const session = await auth();
   const interpreterId = session!.user.interpreterId!;
 
-  const jobs = await prisma.job.findMany({
-    where: { interpreterId, ...(active.status ? { status: active.status } : {}) },
-    include: { client: true },
-    orderBy: [{ date: "desc" }, { time: "asc" }],
-    take: 40,
-  });
+  const [jobs, unreadCount] = await Promise.all([
+    prisma.job.findMany({
+      where: { interpreterId, ...(active.status ? { status: active.status } : {}) },
+      include: { client: true },
+      orderBy: [{ date: "desc" }, { time: "asc" }],
+      take: 40,
+    }),
+    getUnreadCount(session!.user.id),
+  ]);
 
   return (
     <MobileScreen
-      header={{ mode: "brand", notifHref: "/interpreter/benachrichtigungen", unreadCount: 0 }}
+      header={{ mode: "brand", notifHref: "/interpreter/benachrichtigungen", unreadCount }}
       tabBar={<InterpreterTabBar />}
     >
       <div className="mb-4 inline-flex rounded-[10px] border border-field-border bg-white p-[3px]">
@@ -75,7 +81,7 @@ export default async function InterpreterJobsPage({
           </Link>
         );
       })}
-      {jobs.length === 0 && <div className="py-6 text-center text-[13px] text-text-tertiary">Keine Jobs.</div>}
+      {jobs.length === 0 && <EmptyState icon={Briefcase} title="Keine Jobs." />}
     </MobileScreen>
   );
 }

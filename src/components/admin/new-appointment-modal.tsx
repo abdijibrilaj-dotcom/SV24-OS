@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Modal } from "@/components/ui/modal";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,13 @@ export function NewAppointmentModal({ defaultDate }: { defaultDate: string }) {
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const router = useRouter();
+
+  // defaultDate reflects whatever day the calendar had focused when this
+  // modal was mounted; without this it goes stale after a week-change
+  // because useState only reads its initial value once.
+  useEffect(() => {
+    if (!open) setDate(defaultDate);
+  }, [defaultDate, open]);
 
   function close() {
     setOpen(false);

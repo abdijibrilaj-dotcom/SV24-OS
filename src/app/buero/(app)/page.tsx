@@ -1,8 +1,10 @@
 import Link from "next/link";
+import { Calendar } from "lucide-react";
 import { auth } from "@/lib/auth";
 import { MobileScreen } from "@/components/mobile/mobile-screen";
 import { BueroTabBar } from "@/components/buero/buero-tab-bar";
 import { CardMobile } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Pill } from "@/components/ui/pill";
 import { getBueroHomeData } from "@/lib/queries/buero";
 import { jobStatusMeta } from "@/lib/status";
@@ -62,9 +64,7 @@ export default async function BueroHomePage() {
           </Link>
         );
       })}
-      {data.upcoming.length === 0 && (
-        <div className="py-3 text-[13px] text-text-tertiary">Keine anstehenden Termine.</div>
-      )}
+      {data.upcoming.length === 0 && <EmptyState icon={Calendar} title="Keine anstehenden Termine." />}
 
       <div className="mb-2 mt-4 flex items-center justify-between">
         <div className="text-[11px] font-bold uppercase tracking-[0.06em] text-text-tertiary">Aktivität</div>

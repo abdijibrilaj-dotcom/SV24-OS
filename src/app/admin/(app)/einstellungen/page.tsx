@@ -2,7 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { Card } from "@/components/ui/card";
 import { Pill } from "@/components/ui/pill";
 import { Button } from "@/components/ui/button";
-import { updateIntegrationSettingsAction } from "@/lib/actions/settings-actions";
+import { updateIntegrationSettingsAction, updatePricingSettingsAction } from "@/lib/actions/settings-actions";
 
 function EnvStatus({ label, present }: { label: string; present: boolean }) {
   return (
@@ -15,6 +15,7 @@ function EnvStatus({ label, present }: { label: string; present: boolean }) {
 
 export default async function EinstellungenPage() {
   const integration = await prisma.integrationSettings.findUnique({ where: { id: 1 } });
+  const pricing = await prisma.pricingSettings.findUnique({ where: { id: 1 } });
 
   const sevdeskTokenSet = !!process.env.SEVDESK_API_TOKEN;
   const emailImportSet = !!process.env.EMAIL_IMPORT_HOST;
@@ -76,6 +77,40 @@ export default async function EinstellungenPage() {
               name="emailImportAddress"
               defaultValue={integration?.emailImportAddress ?? ""}
               placeholder="anfragen@sprachvermittler24.de"
+              className="w-full max-w-sm rounded-[10px] border border-field-border bg-field-bg-alt px-3 py-2.5 text-sm outline-none focus:border-[#93C5FD] focus:ring-4 focus:ring-[#DBEAFE]"
+            />
+          </div>
+          <div>
+            <Button type="submit" variant="primary">
+              Speichern
+            </Button>
+          </div>
+        </form>
+      </Card>
+
+      <Card>
+        <div className="mb-1 text-[15px] font-bold">Preise</div>
+        <p className="mb-4 text-[12.5px] text-text-secondary">
+          Nur ein Referenzwert für den aktuell einheitlichen Satz — wird noch nicht automatisch in Rechnungen
+          oder Auszahlungen übernommen, die trägst du wie bisher selbst ein. Sag Bescheid, falls das künftig
+          automatisch berechnet werden soll.
+        </p>
+        <form action={updatePricingSettingsAction} className="flex flex-col gap-4">
+          <div>
+            <label className="mb-1.5 block text-xs text-text-secondary">Satz pro Einsatz — Auftraggeber (€)</label>
+            <input
+              name="clientRatePerJob"
+              defaultValue={pricing?.clientRatePerJob?.toString() ?? ""}
+              placeholder="z.B. 85,00"
+              className="w-full max-w-sm rounded-[10px] border border-field-border bg-field-bg-alt px-3 py-2.5 text-sm outline-none focus:border-[#93C5FD] focus:ring-4 focus:ring-[#DBEAFE]"
+            />
+          </div>
+          <div>
+            <label className="mb-1.5 block text-xs text-text-secondary">Satz pro Einsatz — Dolmetscher (€)</label>
+            <input
+              name="interpreterRatePerJob"
+              defaultValue={pricing?.interpreterRatePerJob?.toString() ?? ""}
+              placeholder="z.B. 45,00"
               className="w-full max-w-sm rounded-[10px] border border-field-border bg-field-bg-alt px-3 py-2.5 text-sm outline-none focus:border-[#93C5FD] focus:ring-4 focus:ring-[#DBEAFE]"
             />
           </div>

@@ -1,6 +1,8 @@
 import Link from "next/link";
 import clsx from "clsx";
 import { Card } from "@/components/ui/card";
+import { StatCard } from "@/components/ui/stat-card";
+import { ProgressBar } from "@/components/ui/progress-bar";
 import { getRevenueForPeriod, type Period } from "@/lib/queries/revenue";
 import { formatEUR } from "@/lib/format";
 
@@ -37,20 +39,12 @@ export default async function UmsatzPage({
       </div>
 
       <div className="mb-6 grid grid-cols-3 gap-3.5">
-        <Card>
-          <div className="text-xs font-medium text-text-secondary">Umsatz</div>
-          <div className="mt-1 text-[25px] font-extrabold">{formatEUR(data.total)}</div>
-        </Card>
-        <Card>
-          <div className="text-xs font-medium text-text-secondary">Rechnungen</div>
-          <div className="mt-1 text-[25px] font-extrabold">{data.invoiceCount}</div>
-        </Card>
-        <Card>
-          <div className="text-xs font-medium text-text-secondary">Ø pro Rechnung</div>
-          <div className="mt-1 text-[25px] font-extrabold">
-            {formatEUR(data.invoiceCount > 0 ? data.total / data.invoiceCount : 0)}
-          </div>
-        </Card>
+        <StatCard label="Umsatz" value={formatEUR(data.total)} />
+        <StatCard label="Rechnungen" value={data.invoiceCount} />
+        <StatCard
+          label="Ø pro Rechnung"
+          value={formatEUR(data.invoiceCount > 0 ? data.total / data.invoiceCount : 0)}
+        />
       </div>
 
       <Card>
@@ -59,9 +53,7 @@ export default async function UmsatzPage({
           {data.clientRows.map((c) => (
             <div key={c.name} className="flex items-center gap-3">
               <div className="w-40 truncate text-[12.5px] font-semibold">{c.name}</div>
-              <div className="h-2 flex-1 overflow-hidden rounded-full bg-field-bg">
-                <div className="h-full rounded-full bg-navy" style={{ width: `${c.share}%` }} />
-              </div>
+              <ProgressBar value={c.share} />
               <div className="w-20 text-right text-[12.5px] font-semibold">{formatEUR(c.revenue)}</div>
               <div className="w-10 text-right text-[12.5px] text-text-tertiary">{c.share}%</div>
             </div>

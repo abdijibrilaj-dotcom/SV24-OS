@@ -1,6 +1,8 @@
+import { FileText } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { Card } from "@/components/ui/card";
 import { Pill } from "@/components/ui/pill";
+import { EmptyState } from "@/components/ui/empty-state";
 import { documentStatusMeta } from "@/lib/status";
 import { formatDate } from "@/lib/format";
 
@@ -45,8 +47,8 @@ export default async function DokumentePage() {
               })}
               {documents.length === 0 && (
                 <tr>
-                  <td colSpan={4} className="py-8 text-center text-text-tertiary">
-                    Keine Dokumente vorhanden.
+                  <td colSpan={4}>
+                    <EmptyState icon={FileText} title="Keine Dokumente vorhanden." />
                   </td>
                 </tr>
               )}

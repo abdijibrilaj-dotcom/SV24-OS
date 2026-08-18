@@ -1,6 +1,9 @@
+import { Mail } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { Card } from "@/components/ui/card";
 import { Pill, type PillTone } from "@/components/ui/pill";
+import { EmptyState } from "@/components/ui/empty-state";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { avatarColor } from "@/lib/avatar-color";
 import { formatDate } from "@/lib/format";
 import {
@@ -78,14 +81,10 @@ export default async function EmailImportPage() {
               {e.status === "NEU" && (
                 <div className="flex gap-2.5">
                   <form action={confirmEmailImportAction.bind(null, e.id)}>
-                    <button className="rounded-[10px] bg-[#14151A] px-[18px] py-2.5 text-[13px] font-semibold text-white" type="submit">
-                      Bestätigen &amp; Auftrag anlegen
-                    </button>
+                    <SubmitButton pendingText="Wird angelegt…">Bestätigen &amp; Auftrag anlegen</SubmitButton>
                   </form>
                   <form action={rejectEmailImportAction.bind(null, e.id)}>
-                    <button className="rounded-[10px] border border-field-border px-[18px] py-2.5 text-[13px] font-semibold text-text-secondary" type="submit">
-                      Ablehnen
-                    </button>
+                    <SubmitButton variant="outline" pendingText="Wird abgelehnt…">Ablehnen</SubmitButton>
                   </form>
                 </div>
               )}
@@ -110,9 +109,7 @@ export default async function EmailImportPage() {
                         <Pill tone="green">{e.matchScore}% Match</Pill>
                       </div>
                       <form action={sendRequestAction.bind(null, e.id)}>
-                        <button className="rounded-[10px] bg-[#14151A] px-[18px] py-2.5 text-[13px] font-semibold text-white" type="submit">
-                          Anfrage an Dolmetscher:in senden
-                        </button>
+                        <SubmitButton pendingText="Wird gesendet…">Anfrage an Dolmetscher:in senden</SubmitButton>
                       </form>
                     </>
                   ) : (
@@ -165,9 +162,7 @@ export default async function EmailImportPage() {
 
       {imports.length === 0 && (
         <Card>
-          <div className="py-4 text-center text-[13px] text-text-tertiary">
-            Keine E-Mail-Anfragen vorhanden.
-          </div>
+          <EmptyState icon={Mail} title="Keine E-Mail-Anfragen vorhanden." />
         </Card>
       )}
     </div>

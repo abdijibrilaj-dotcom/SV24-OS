@@ -1,5 +1,11 @@
+import { Languages, Gauge } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { Card } from "@/components/ui/card";
+import { StatCard } from "@/components/ui/stat-card";
+import { ProgressBar } from "@/components/ui/progress-bar";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Pill } from "@/components/ui/pill";
+import { getWeeklyUtilization } from "@/lib/queries/utilization";
 import { formatEUR } from "@/lib/format";
 
 export default async function StatistikenPage() {
@@ -20,25 +26,15 @@ export default async function StatistikenPage() {
   }
   const topLanguages = Array.from(langTally.entries()).sort((a, b) => b[1] - a[1]).slice(0, 6);
 
+  const utilization = await getWeeklyUtilization();
+
   return (
     <div>
       <div className="mb-6 grid grid-cols-4 gap-3.5">
-        <Card>
-          <div className="text-xs font-medium text-text-secondary">Auftragsvolumen (Monat)</div>
-          <div className="mt-1 text-[25px] font-extrabold">{jobsThisMonth}</div>
-        </Card>
-        <Card>
-          <div className="text-xs font-medium text-text-secondary">Aktive Dolmetscher</div>
-          <div className="mt-1 text-[25px] font-extrabold">{activeInterpreters}</div>
-        </Card>
-        <Card>
-          <div className="text-xs font-medium text-text-secondary">Ø Bewertung</div>
-          <div className="mt-1 text-[25px] font-extrabold">{Number(avgRating._avg.rating ?? 0).toFixed(1)} ★</div>
-        </Card>
-        <Card>
-          <div className="text-xs font-medium text-text-secondary">Umsatz (Monat)</div>
-          <div className="mt-1 text-[25px] font-extrabold">{formatEUR(Number(invoiceSum._sum.amount ?? 0))}</div>
-        </Card>
+        <StatCard label="Auftragsvolumen (Monat)" value={jobsThisMonth} />
+        <StatCard label="Aktive Dolmetscher" value={activeInterpreters} />
+        <StatCard label="Ø Bewertung" value={`${Number(avgRating._avg.rating ?? 0).toFixed(1)} ★`} />
+        <StatCard label="Umsatz (Monat)" value={formatEUR(Number(invoiceSum._sum.amount ?? 0))} />
       </div>
 
       <Card>
@@ -47,18 +43,40 @@ export default async function StatistikenPage() {
           {topLanguages.map(([lang, count]) => (
             <div key={lang} className="flex items-center gap-3">
               <div className="w-10 text-[12.5px] font-semibold">{lang}</div>
-              <div className="h-2 flex-1 overflow-hidden rounded-full bg-field-bg">
-                <div
-                  className="h-full rounded-full bg-navy"
-                  style={{ width: `${(count / topLanguages[0][1]) * 100}%` }}
-                />
-              </div>
+              <ProgressBar value={(count / topLanguages[0][1]) * 100} />
               <div className="w-6 text-right text-[12.5px] text-text-secondary">{count}</div>
             </div>
           ))}
           {topLanguages.length === 0 && (
-            <div className="text-[13px] text-text-tertiary">Noch keine Dolmetscher angelegt.</div>
+            <EmptyState icon={Languages} title="Noch keine Dolmetscher angelegt." />
           )}
+        </div>
+      </Card>
+
+      <Card className="mt-5">
+        <div className="mb-1 text-[13px] font-bold">Auslastung diese Woche</div>
+        <div className="mb-3 text-[12px] text-text-secondary">
+          Zugewiesene Aufträge im Verhältnis zu den diese Woche angebotenen Tagen — dieselbe Fairness-Logik,
+          die auch bei automatischen Zuweisungsvorschlägen greift.
+        </div>
+        <div className="flex flex-col gap-2.5">
+          {utilization.map((row) => (
+            <div key={row.interpreterId} className="flex items-center gap-3">
+              <div className="w-32 truncate text-[12.5px] font-semibold">{row.name}</div>
+              <ProgressBar value={row.loadPct} />
+              <div className="w-16 text-right text-[12.5px] text-text-secondary">
+                {row.assignedJobs}/{row.offeredDays}
+              </div>
+              {row.loadPct >= 100 ? (
+                <Pill tone="red">Ausgelastet</Pill>
+              ) : row.loadPct === 0 ? (
+                <Pill tone="gray">Frei</Pill>
+              ) : (
+                <Pill tone="green">{row.loadPct}%</Pill>
+              )}
+            </div>
+          ))}
+          {utilization.length === 0 && <EmptyState icon={Gauge} title="Noch keine Dolmetscher angelegt." />}
         </div>
       </Card>
     </div>

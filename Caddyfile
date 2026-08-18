@@ -1,0 +1,12 @@
+# Trage hier deine echte Domain ein (die, deren DNS-A-Record auf die
+# IP dieses Netcup-Servers zeigt). Caddy holt sich dann automatisch und
+# kostenlos ein Let's-Encrypt-Zertifikat und erneuert es von selbst.
+app.sprachvermittler24.de {
+	reverse_proxy app:3000
+
+	encode gzip
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+	}
+}

@@ -1,6 +1,7 @@
-import { ArrowUpRight, Percent, Briefcase, Inbox } from "lucide-react";
+import { ArrowUpRight, Percent, Briefcase, Inbox, ShieldCheck } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Pill } from "@/components/ui/pill";
+import { EmptyState } from "@/components/ui/empty-state";
 import { getDashboardData } from "@/lib/queries/dashboard";
 import { formatEUR } from "@/lib/format";
 
@@ -27,7 +28,7 @@ export default async function AdminDashboardPage() {
           </div>
           <div className="text-xs font-medium text-text-secondary">Gewinn (MTD)</div>
           <div className="mt-1 text-[25px] font-extrabold">{formatEUR(data.profit)}</div>
-          <Pill tone="green" className="mt-2">{data.marginPct}% Marge</Pill>
+          <Pill tone={data.marginPct >= 0 ? "green" : "red"} className="mt-2">{data.marginPct}% Marge</Pill>
         </Card>
         <Card>
           <div className="mb-3 flex h-8 w-8 items-center justify-center rounded-[9px] bg-[#EEF2FF] text-[#4338CA]">
@@ -99,8 +100,8 @@ export default async function AdminDashboardPage() {
                 ))}
                 {data.recentJobs.length === 0 && (
                   <tr>
-                    <td colSpan={4} className="py-6 text-center text-text-tertiary">
-                      Noch keine Aufträge.
+                    <td colSpan={4}>
+                      <EmptyState icon={Briefcase} title="Noch keine Aufträge." />
                     </td>
                   </tr>
                 )}
@@ -117,7 +118,7 @@ export default async function AdminDashboardPage() {
             </div>
           ))}
           {data.alerts.length === 0 && (
-            <div className="py-2 text-[13px] text-text-tertiary">Keine offenen Warnungen.</div>
+            <EmptyState icon={ShieldCheck} title="Keine offenen Warnungen." />
           )}
         </Card>
       </div>

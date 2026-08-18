@@ -27,6 +27,7 @@ export async function GET(
       headers: {
         "Content-Type": "application/sql",
         "Content-Disposition": `attachment; filename="${filename}"`,
+        "X-Content-Type-Options": "nosniff",
       },
     });
   } catch {

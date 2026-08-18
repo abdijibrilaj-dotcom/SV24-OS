@@ -24,8 +24,26 @@ export async function createBackupAction(): Promise<{ ok: true; file: string } |
   const filename = `sv24os-backup-${timestamp}.sql`;
   const filePath = path.join(BACKUP_DIR, filename);
 
+  // The DB password is passed via the PGPASSWORD env var rather than as
+  // part of the connection string argument — process argv (unlike env) is
+  // visible to any other local user via `ps aux` / /proc/<pid>/cmdline.
+  let connectionUrl = databaseUrl;
+  let pgPassword: string | undefined;
   try {
-    await execFileAsync("pg_dump", ["--no-owner", "--no-privileges", "-f", filePath, databaseUrl]);
+    const parsed = new URL(databaseUrl);
+    pgPassword = parsed.password ? decodeURIComponent(parsed.password) : undefined;
+    parsed.password = "";
+    connectionUrl = parsed.toString();
+  } catch {
+    // Not a parseable URL — fall back to passing it through as-is.
+  }
+
+  try {
+    await execFileAsync(
+      "pg_dump",
+      ["--no-owner", "--no-privileges", "-f", filePath, connectionUrl],
+      { env: { ...process.env, ...(pgPassword ? { PGPASSWORD: pgPassword } : {}) } }
+    );
   } catch (err) {
     return { error: `Backup fehlgeschlagen: ${(err as Error).message}` };
   }

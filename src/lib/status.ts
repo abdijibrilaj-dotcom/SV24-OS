@@ -8,6 +8,8 @@ import type {
   DispatchStatus,
   UserStatus,
   Role,
+  ResidentStatus,
+  ServiceType,
 } from "@prisma/client";
 
 export const interpreterStatusMeta: Record<
@@ -76,4 +78,17 @@ export const roleMeta: Record<Role, { label: string; tone: PillTone }> = {
   ADMIN: { label: "Admin", tone: "blue" },
   BUERO: { label: "Büro", tone: "gray" },
   INTERPRETER: { label: "Dolmetscher", tone: "green" },
+};
+
+export const residentStatusMeta: Record<ResidentStatus, { label: string; tone: PillTone }> = {
+  AKTIV: { label: "Aktiv", tone: "green" },
+  ABGESCHLOSSEN: { label: "Abgeschlossen", tone: "gray" },
+};
+
+export const serviceTypeMeta: Record<ServiceType, { label: string; tone: PillTone }> = {
+  DOLMETSCHEN: { label: "Dolmetschen", tone: "blue" },
+  SOZIALBETREUUNG: { label: "Sozialbetreuung", tone: "green" },
+  SPRACHKURS: { label: "Sprachkurs", tone: "amber" },
+  VERWALTUNGSBEGLEITUNG: { label: "Verwaltungsbegleitung", tone: "gray" },
+  SONSTIGES: { label: "Sonstiges", tone: "gray" },
 };

@@ -1,13 +1,19 @@
 import Link from "next/link";
+import { Calendar } from "lucide-react";
+import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { MobileScreen } from "@/components/mobile/mobile-screen";
 import { BueroTabBar } from "@/components/buero/buero-tab-bar";
 import { CardMobile } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Pill } from "@/components/ui/pill";
 import { jobStatusMeta } from "@/lib/status";
 import { addDays, toISODate, formatDayLabel } from "@/lib/dates";
+import { getUnreadCount } from "@/lib/queries/notifications";
 
 export default async function BueroKalenderPage() {
+  const session = await auth();
+  const unreadCount = await getUnreadCount(session!.user.id);
   const today = new Date(new Date().setHours(0, 0, 0, 0));
   const rangeEnd = addDays(today, 14);
 
@@ -29,7 +35,7 @@ export default async function BueroKalenderPage() {
 
   return (
     <MobileScreen
-      header={{ mode: "brand", notifHref: "/buero/benachrichtigungen", unreadCount: 0 }}
+      header={{ mode: "brand", notifHref: "/buero/benachrichtigungen", unreadCount }}
       tabBar={<BueroTabBar />}
     >
       <div className="mb-4 flex items-center justify-between">
@@ -67,9 +73,7 @@ export default async function BueroKalenderPage() {
         );
       })}
       {days.length === 0 && (
-        <div className="py-6 text-center text-[13px] text-text-tertiary">
-          Keine Termine in den nächsten 14 Tagen.
-        </div>
+        <EmptyState icon={Calendar} title="Keine Termine in den nächsten 14 Tagen." />
       )}
     </MobileScreen>
   );

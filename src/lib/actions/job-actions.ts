@@ -20,6 +20,22 @@ function canActOnJob(session: Session, interpreterId: string | null) {
   return !!session.user.interpreterId && session.user.interpreterId === interpreterId;
 }
 
+/**
+ * Self-healing status transition: nothing else in the app ever moved a job
+ * from CONFIRMED to COMPLETED, so "erledigt" filters/stats silently never
+ * matched anything. Called once per request from each portal's layout
+ * (force-dynamic, so this always runs before any page queries jobs) rather
+ * than relying on a cron job the hosting setup may not have.
+ */
+export async function syncCompletedJobs() {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  await prisma.job.updateMany({
+    where: { status: "CONFIRMED", date: { lt: today } },
+    data: { status: "COMPLETED" },
+  });
+}
+
 export async function confirmJobAction(jobId: string) {
   const session = await auth();
   if (!session?.user) throw new Error("Keine Berechtigung.");
@@ -38,7 +54,7 @@ export async function confirmJobAction(jobId: string) {
     });
   }
 
-  await notifyOffice(`${job.interpreter?.name} hat den Termin bei ${job.client.name} bestätigt`);
+  await notifyOffice(`${job.interpreter?.name ?? "Ein Dolmetscher"} hat den Termin bei ${job.client.name} bestätigt`);
 
   revalidatePath("/interpreter");
   revalidatePath("/interpreter/jobs");
@@ -70,7 +86,7 @@ export async function declineJobAction(jobId: string) {
     });
   }
 
-  await notifyOffice(`${job.interpreter?.name} hat den Termin bei ${job.client.name} abgelehnt`);
+  await notifyOffice(`${job.interpreter?.name ?? "Ein Dolmetscher"} hat den Termin bei ${job.client.name} abgelehnt`);
 
   revalidatePath("/interpreter");
   revalidatePath("/interpreter/jobs");

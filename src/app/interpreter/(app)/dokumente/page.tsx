@@ -1,7 +1,9 @@
+import { FileText } from "lucide-react";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { MobileScreen } from "@/components/mobile/mobile-screen";
 import { CardMobile } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Pill } from "@/components/ui/pill";
 import { documentStatusMeta } from "@/lib/status";
 import { formatDate } from "@/lib/format";
@@ -61,9 +63,7 @@ export default async function InterpreterDokumentePage() {
           </CardMobile>
         );
       })}
-      {documents.length === 0 && (
-        <div className="py-6 text-center text-[13px] text-text-tertiary">Keine Dokumente hinterlegt.</div>
-      )}
+      {documents.length === 0 && <EmptyState icon={FileText} title="Keine Dokumente hinterlegt." />}
     </MobileScreen>
   );
 }

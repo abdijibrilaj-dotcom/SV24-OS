@@ -37,7 +37,7 @@ export default async function BueroLoginPage({
             E-Mail oder Passwort stimmen nicht überein.
           </p>
         )}
-        <Button type="submit" variant="dark" className="mt-1 w-full py-3.5">
+        <Button type="submit" variant="primary" className="mt-1 w-full py-3.5">
           Anmelden
         </Button>
       </form>

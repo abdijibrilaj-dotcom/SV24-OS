@@ -58,7 +58,7 @@ export default async function BueroJobDetailPage({
       {job.status === "PENDING" && (
         <div className="mt-4 flex gap-2.5">
           <form action={confirmJobAction.bind(null, job.id)} className="flex-1">
-            <button className="w-full rounded-xl bg-[#14151A] py-3 text-sm font-bold text-white" type="submit">
+            <button className="w-full rounded-xl bg-navy py-3 text-sm font-bold text-white" type="submit">
               Annehmen
             </button>
           </form>

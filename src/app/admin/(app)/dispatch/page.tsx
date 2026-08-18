@@ -1,6 +1,9 @@
+import { CheckCircle2 } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { Card } from "@/components/ui/card";
 import { Pill } from "@/components/ui/pill";
+import { EmptyState } from "@/components/ui/empty-state";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { formatDate } from "@/lib/format";
 import { assignDispatchJobAction } from "@/lib/actions/dispatch-actions";
 
@@ -37,13 +40,9 @@ export default async function DispatchPage() {
                 )}
               </div>
               <form action={assignDispatchJobAction.bind(null, j.id)}>
-                <button
-                  type="submit"
-                  disabled={!j.interpreterId}
-                  className="rounded-[10px] bg-[#14151A] px-[18px] py-2.5 text-[13px] font-semibold text-white disabled:opacity-40"
-                >
+                <SubmitButton disabled={!j.interpreterId} pendingText="Wird zugewiesen…">
                   Zuweisen
-                </button>
+                </SubmitButton>
               </form>
             </div>
           </Card>
@@ -51,9 +50,7 @@ export default async function DispatchPage() {
       })}
       {jobs.length === 0 && (
         <Card>
-          <div className="py-4 text-center text-[13px] text-text-tertiary">
-            Keine offenen Aufträge — alles zugewiesen.
-          </div>
+          <EmptyState icon={CheckCircle2} title="Keine offenen Aufträge — alles zugewiesen." />
         </Card>
       )}
     </div>

@@ -1,0 +1,64 @@
+# Produktiv-Setup für einen öffentlich erreichbaren Server (z.B. Netcup
+# vServer). Unterschied zu docker-compose.yml (lokale Entwicklung):
+#   - der App-Container ist NICHT direkt auf einen Host-Port gemappt,
+#     sondern nur intern über "expose" erreichbar
+#   - ein zusätzlicher "caddy"-Service terminiert TLS (Let's Encrypt,
+#     automatisch, kostenlos) und leitet Anfragen an die App weiter
+#
+# Voraussetzung: eine Domain (z.B. app.sprachvermittler24.de), deren
+# DNS-A-Record auf die öffentliche IP dieses Servers zeigt — siehe
+# NETCUP-DEPLOYMENT.md für die vollständige Schritt-für-Schritt-Anleitung.
+#
+# Start:   docker compose -f docker-compose.prod.yml up -d --build
+# Logs:    docker compose -f docker-compose.prod.yml logs -f
+# Stop:    docker compose -f docker-compose.prod.yml down
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: sv24os
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: sv24os
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sv24os"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql://sv24os:${POSTGRES_PASSWORD}@db:5432/sv24os
+    expose:
+      - "3000"
+    volumes:
+      - app-storage:/app/storage
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    depends_on:
+      - app
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+
+volumes:
+  db-data:
+  app-storage:
+  caddy-data:
+  caddy-config:

@@ -1,7 +1,9 @@
 import path from "path";
 import { readdir, stat } from "fs/promises";
+import { DatabaseBackup } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { CreateBackupButton } from "@/components/admin/create-backup-button";
+import { EmptyState } from "@/components/ui/empty-state";
 import { formatDate } from "@/lib/format";
 
 const BACKUP_DIR = process.env.BACKUP_DIR || path.join(process.cwd(), "storage", "backups");
@@ -70,8 +72,8 @@ export default async function BackupsPage() {
               ))}
               {backups.length === 0 && (
                 <tr>
-                  <td colSpan={4} className="py-8 text-center text-text-tertiary">
-                    Noch keine Backups erstellt.
+                  <td colSpan={4}>
+                    <EmptyState icon={DatabaseBackup} title="Noch keine Backups erstellt." />
                   </td>
                 </tr>
               )}

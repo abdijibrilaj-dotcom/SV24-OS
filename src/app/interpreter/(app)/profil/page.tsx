@@ -8,6 +8,7 @@ import { CardMobile } from "@/components/ui/card";
 import { PushToggle } from "@/components/interpreter/push-toggle";
 import { formatEUR } from "@/lib/format";
 import { logoutAction } from "@/lib/actions/auth-actions";
+import { getUnreadCount } from "@/lib/queries/notifications";
 
 export default async function InterpreterProfilPage() {
   const session = await auth();
@@ -16,7 +17,7 @@ export default async function InterpreterProfilPage() {
 
   const now = new Date();
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-  const [jobsThisMonth, payoutsThisMonth] = await Promise.all([
+  const [jobsThisMonth, payoutsThisMonth, unreadCount] = await Promise.all([
     prisma.job.count({
       where: { interpreterId, date: { gte: monthStart }, status: { in: ["CONFIRMED", "COMPLETED"] } },
     }),
@@ -24,11 +25,12 @@ export default async function InterpreterProfilPage() {
       _sum: { amount: true },
       where: { interpreterId, uploadedAt: { gte: monthStart } },
     }),
+    getUnreadCount(session!.user.id),
   ]);
 
   return (
     <MobileScreen
-      header={{ mode: "brand", notifHref: "/interpreter/benachrichtigungen", unreadCount: 0 }}
+      header={{ mode: "brand", notifHref: "/interpreter/benachrichtigungen", unreadCount }}
       tabBar={<InterpreterTabBar />}
     >
       <div className="flex flex-col items-center gap-2.5 py-2">
@@ -62,10 +64,14 @@ export default async function InterpreterProfilPage() {
           <span className="text-sm font-medium">Dokumente</span>
           <ChevronRight size={16} className="text-text-tertiary" />
         </Link>
-        <Link href="/interpreter/auszahlungen" className="flex items-center justify-between px-4 py-3.5">
+        <Link href="/interpreter/auszahlungen" className="flex items-center justify-between px-4 py-3.5 border-b border-card-border-mobile">
           <span className="text-sm font-medium">Auszahlungen</span>
           <ChevronRight size={16} className="text-text-tertiary" />
         </Link>
+        <a href="/api/interpreter/calendar.ics" className="flex items-center justify-between px-4 py-3.5">
+          <span className="text-sm font-medium">Kalender exportieren (.ics)</span>
+          <ChevronRight size={16} className="text-text-tertiary" />
+        </a>
       </CardMobile>
 
       <CardMobile className="mb-4">

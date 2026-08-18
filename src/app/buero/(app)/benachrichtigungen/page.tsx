@@ -1,7 +1,9 @@
+import { Bell } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { MobileScreen } from "@/components/mobile/mobile-screen";
 import { CardMobile } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
 import { formatDate } from "@/lib/format";
 
 export default async function BueroBenachrichtigungenPage() {
@@ -28,9 +30,7 @@ export default async function BueroBenachrichtigungenPage() {
           </div>
         </CardMobile>
       ))}
-      {notifications.length === 0 && (
-        <div className="py-6 text-center text-[13px] text-text-tertiary">Keine Benachrichtigungen.</div>
-      )}
+      {notifications.length === 0 && <EmptyState icon={Bell} title="Keine Benachrichtigungen." />}
     </MobileScreen>
   );
 }

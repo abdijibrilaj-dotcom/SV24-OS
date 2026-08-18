@@ -27,7 +27,7 @@ services:
       # network the DB is reachable at the service name, not localhost.
       DATABASE_URL: postgresql://sv24os:${POSTGRES_PASSWORD:-sv24os}@db:5432/sv24os
     ports:
-      - "3000:3000"
+      - "3001:3000"
     volumes:
       - app-storage:/app/storage
 

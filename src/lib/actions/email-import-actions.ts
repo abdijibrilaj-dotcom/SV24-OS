@@ -59,10 +59,15 @@ export async function sendRequestAction(id: string) {
     throw new Error("Kein Dolmetscher-Vorschlag vorhanden.");
   }
 
+  // "location" (Einsatzort) is the closest thing an email-parsed request has
+  // to a Kunde/Auftraggeber name — there's no separate institution field on
+  // EmailImport. Normalized here so whitespace differences between two
+  // emails for the same authority don't silently create duplicate clients.
+  const clientName = item.location.trim().replace(/\s+/g, " ");
   const client = await prisma.client.upsert({
-    where: { name: item.location },
+    where: { name: clientName },
     update: {},
-    create: { name: item.location, contact: item.contact },
+    create: { name: clientName, contact: item.contact },
   });
 
   await prisma.$transaction(async (tx) => {

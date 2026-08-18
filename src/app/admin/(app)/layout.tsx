@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { AdminSidebar } from "@/components/admin/sidebar";
 import { AdminHeader } from "@/components/admin/header";
 import { initialsFromName } from "@/lib/ids";
+import { syncCompletedJobs } from "@/lib/actions/job-actions";
 
 // Belt-and-suspenders alongside the auth() call below (which already
 // forces dynamic rendering): every admin page is live per-request data
@@ -17,6 +18,8 @@ export default async function AdminLayout({
 }) {
   const session = await auth();
   const user = session?.user;
+
+  await syncCompletedJobs();
 
   const unreadCount = user
     ? await prisma.notification.count({

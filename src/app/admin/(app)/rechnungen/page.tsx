@@ -1,11 +1,15 @@
 import Link from "next/link";
 import clsx from "clsx";
+import { FileText } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { Card } from "@/components/ui/card";
+import { StatCard } from "@/components/ui/stat-card";
 import { Pill } from "@/components/ui/pill";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { invoiceStatusMeta } from "@/lib/status";
 import { formatEUR, formatDate } from "@/lib/format";
 import { markInvoicePaidAction } from "@/lib/actions/invoice-actions";
+import { EmptyState } from "@/components/ui/empty-state";
 import type { InvoiceStatus } from "@prisma/client";
 
 const FILTERS: { value: string; label: string; status?: InvoiceStatus }[] = [
@@ -63,18 +67,17 @@ export default async function RechnungenPage({
       </div>
 
       <div className="mb-5 grid grid-cols-3 gap-3.5">
-        <Card>
-          <div className="text-xs font-medium text-text-secondary">Offener Betrag</div>
-          <div className="mt-1 text-[25px] font-extrabold">{formatEUR(openSum)}</div>
-        </Card>
-        <Card>
-          <div className="text-xs font-medium text-text-secondary">Davon überfällig</div>
-          <div className="mt-1 text-[25px] font-extrabold text-pill-red-fg">{formatEUR(overdueSum)}</div>
-        </Card>
-        <Card>
-          <div className="text-xs font-medium text-text-secondary">Bezahlt (Zeitraum)</div>
-          <div className="mt-1 text-[25px] font-extrabold text-pill-green-fg">{formatEUR(paidSum)}</div>
-        </Card>
+        <StatCard label="Offener Betrag" value={formatEUR(openSum)} />
+        <StatCard
+          label="Davon überfällig"
+          value={formatEUR(overdueSum)}
+          valueClassName="text-pill-red-fg"
+        />
+        <StatCard
+          label="Bezahlt (Zeitraum)"
+          value={formatEUR(paidSum)}
+          valueClassName="text-pill-green-fg"
+        />
       </div>
 
       <div className="mb-4 inline-flex rounded-[10px] border border-field-border bg-white p-[3px]">
@@ -122,9 +125,9 @@ export default async function RechnungenPage({
                     <td className="px-1 py-2.5">
                       {inv.status !== "BEZAHLT" && (
                         <form action={markInvoicePaidAction.bind(null, inv.id)}>
-                          <button className="text-[12.5px] font-semibold text-[#334155]" type="submit">
+                          <SubmitButton variant="link" pendingText="Wird markiert…">
                             Als bezahlt markieren
-                          </button>
+                          </SubmitButton>
                         </form>
                       )}
                     </td>
@@ -133,8 +136,8 @@ export default async function RechnungenPage({
               })}
               {invoices.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="py-8 text-center text-text-tertiary">
-                    Keine Rechnungen in dieser Ansicht.
+                  <td colSpan={7}>
+                    <EmptyState icon={FileText} title="Keine Rechnungen in dieser Ansicht." />
                   </td>
                 </tr>
               )}

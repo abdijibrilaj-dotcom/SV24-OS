@@ -17,6 +17,19 @@ export async function nextInterpreterHumanId(db: Db): Promise<string> {
   return `D-${seq.current}`;
 }
 
+/**
+ * Same allocator pattern as interpreter IDs, for case files ("F-1001",
+ * "F-1002", ...) opened as part of the non-Dolmetschen services.
+ */
+export async function nextResidentHumanId(db: Db): Promise<string> {
+  const seq = await db.idSequence.upsert({
+    where: { key: "resident" },
+    create: { key: "resident", current: 1001 },
+    update: { current: { increment: 1 } },
+  });
+  return `F-${seq.current}`;
+}
+
 export function initialsFromName(name: string): string {
   const parts = name.trim().split(/\s+/).filter(Boolean);
   if (parts.length === 0) return "?";

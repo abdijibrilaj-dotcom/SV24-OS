@@ -1,10 +1,13 @@
 import Link from "next/link";
+import { Wallet } from "lucide-react";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { MobileScreen } from "@/components/mobile/mobile-screen";
 import { InterpreterTabBar } from "@/components/interpreter/interpreter-tab-bar";
 import { CardMobile } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
 import { formatEUR, formatDate } from "@/lib/format";
+import { getUnreadCount } from "@/lib/queries/notifications";
 
 export default async function InterpreterAuszahlungenPage() {
   const session = await auth();
@@ -13,17 +16,20 @@ export default async function InterpreterAuszahlungenPage() {
   const now = new Date();
   const yearStart = new Date(now.getFullYear(), 0, 1);
 
-  const payouts = await prisma.payout.findMany({
-    where: { interpreterId },
-    orderBy: { uploadedAt: "desc" },
-  });
+  const [payouts, unreadCount] = await Promise.all([
+    prisma.payout.findMany({
+      where: { interpreterId },
+      orderBy: { uploadedAt: "desc" },
+    }),
+    getUnreadCount(session!.user.id),
+  ]);
   const yearSum = payouts
     .filter((p) => p.uploadedAt >= yearStart)
     .reduce((sum, p) => sum + Number(p.amount), 0);
 
   return (
     <MobileScreen
-      header={{ mode: "brand", notifHref: "/interpreter/benachrichtigungen", unreadCount: 0 }}
+      header={{ mode: "brand", notifHref: "/interpreter/benachrichtigungen", unreadCount }}
       tabBar={<InterpreterTabBar />}
     >
       <div className="mb-4 rounded-2xl bg-navy p-5 text-white">
@@ -50,9 +56,7 @@ export default async function InterpreterAuszahlungenPage() {
           </CardMobile>
         </Link>
       ))}
-      {payouts.length === 0 && (
-        <div className="py-6 text-center text-[13px] text-text-tertiary">Noch keine Gutschriften.</div>
-      )}
+      {payouts.length === 0 && <EmptyState icon={Wallet} title="Noch keine Gutschriften." />}
     </MobileScreen>
   );
 }

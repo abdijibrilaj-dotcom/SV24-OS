@@ -13,6 +13,7 @@ import {
   Shield,
   Database,
   Settings,
+  HeartHandshake,
   type LucideIcon,
 } from "lucide-react";
 
@@ -58,6 +59,10 @@ export const ADMIN_NAV: NavGroup[] = [
       { href: "/admin/auftraggeber", label: "Auftraggeber", icon: Building2 },
       { href: "/admin/dokumente", label: "Dokumente", icon: Folder },
     ],
+  },
+  {
+    title: "Diversifizierung",
+    items: [{ href: "/admin/faelle", label: "Fälle", icon: HeartHandshake }],
   },
   {
     title: "System",

@@ -1,6 +1,8 @@
+import { Building2, Download } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { Card } from "@/components/ui/card";
 import { Pill } from "@/components/ui/pill";
+import { EmptyState } from "@/components/ui/empty-state";
 import { clientStatusMeta } from "@/lib/status";
 import { formatEUR } from "@/lib/format";
 
@@ -27,6 +29,7 @@ export default async function AuftraggeberPage() {
               <th className="px-1 py-3">Aktive Aufträge</th>
               <th className="px-1 py-3">Umsatz (YTD)</th>
               <th className="px-1 py-3">Status</th>
+              <th className="px-1 py-3" />
             </tr>
           </thead>
           <tbody>
@@ -42,13 +45,22 @@ export default async function AuftraggeberPage() {
                   <td className="px-1 py-2.5">
                     <Pill tone={meta.tone}>{meta.label}</Pill>
                   </td>
+                  <td className="px-1 py-2.5">
+                    <a
+                      href={`/api/admin/auftraggeber/${c.id}/report.csv`}
+                      className="inline-flex items-center gap-1.5 text-[12.5px] font-semibold text-[#334155]"
+                    >
+                      <Download size={13} strokeWidth={2} />
+                      Report
+                    </a>
+                  </td>
                 </tr>
               );
             })}
             {clients.length === 0 && (
               <tr>
-                <td colSpan={5} className="py-8 text-center text-text-tertiary">
-                  Noch keine Auftraggeber angelegt.
+                <td colSpan={6}>
+                  <EmptyState icon={Building2} title="Noch keine Auftraggeber angelegt." />
                 </td>
               </tr>
             )}

@@ -1,10 +1,11 @@
 import Link from "next/link";
-import { Plus } from "lucide-react";
+import { Plus, Briefcase } from "lucide-react";
 import clsx from "clsx";
 import { prisma } from "@/lib/prisma";
 import { MobileScreen } from "@/components/mobile/mobile-screen";
 import { BueroTabBar } from "@/components/buero/buero-tab-bar";
 import { CardMobile } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Pill } from "@/components/ui/pill";
 import { jobStatusMeta } from "@/lib/status";
 import { formatDateShort } from "@/lib/format";
@@ -45,7 +46,7 @@ export default async function BueroJobsPage({
         action: (
           <Link
             href="/buero/buchung"
-            className="flex h-[34px] w-[34px] items-center justify-center rounded-[10px] bg-[#14151A] text-white"
+            className="flex h-[34px] w-[34px] items-center justify-center rounded-[10px] bg-navy text-white"
           >
             <Plus size={18} strokeWidth={2} />
           </Link>
@@ -90,7 +91,7 @@ export default async function BueroJobsPage({
           </Link>
         );
       })}
-      {jobs.length === 0 && <div className="py-6 text-center text-[13px] text-text-tertiary">Keine Aufträge.</div>}
+      {jobs.length === 0 && <EmptyState icon={Briefcase} title="Keine Aufträge." />}
     </MobileScreen>
   );
 }

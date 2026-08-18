@@ -1,22 +1,31 @@
+import { FileText } from "lucide-react";
+import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { MobileScreen } from "@/components/mobile/mobile-screen";
 import { BueroTabBar } from "@/components/buero/buero-tab-bar";
 import { CardMobile } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Pill } from "@/components/ui/pill";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { invoiceStatusMeta } from "@/lib/status";
 import { formatEUR, formatDateShort } from "@/lib/format";
 import { markInvoicePaidAction } from "@/lib/actions/invoice-actions";
+import { getUnreadCount } from "@/lib/queries/notifications";
 
 export default async function BueroRechnungenPage() {
-  const invoices = await prisma.invoice.findMany({
-    include: { client: true },
-    orderBy: { date: "desc" },
-    take: 30,
-  });
+  const session = await auth();
+  const [invoices, unreadCount] = await Promise.all([
+    prisma.invoice.findMany({
+      include: { client: true },
+      orderBy: { date: "desc" },
+      take: 30,
+    }),
+    getUnreadCount(session!.user.id),
+  ]);
 
   return (
     <MobileScreen
-      header={{ mode: "brand", notifHref: "/buero/benachrichtigungen", unreadCount: 0 }}
+      header={{ mode: "brand", notifHref: "/buero/benachrichtigungen", unreadCount }}
       tabBar={<BueroTabBar />}
     >
       <div className="mb-4 text-[18px] font-extrabold">Rechnungen</div>
@@ -39,17 +48,15 @@ export default async function BueroRechnungenPage() {
             </div>
             {inv.status !== "BEZAHLT" && (
               <form action={markInvoicePaidAction.bind(null, inv.id)} className="mt-2">
-                <button type="submit" className="text-xs font-semibold text-[#334155]">
+                <SubmitButton variant="link" className="text-xs" pendingText="Wird markiert…">
                   Als bezahlt markieren
-                </button>
+                </SubmitButton>
               </form>
             )}
           </CardMobile>
         );
       })}
-      {invoices.length === 0 && (
-        <div className="py-6 text-center text-[13px] text-text-tertiary">Keine Rechnungen.</div>
-      )}
+      {invoices.length === 0 && <EmptyState icon={FileText} title="Keine Rechnungen." />}
     </MobileScreen>
   );
 }

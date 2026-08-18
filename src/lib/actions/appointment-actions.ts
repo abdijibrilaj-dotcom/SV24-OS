@@ -21,7 +21,7 @@ export async function createAppointmentAction(input: {
     return { error: "Keine Berechtigung." };
   }
 
-  const clientName = input.client.trim();
+  const clientName = input.client.trim().replace(/\s+/g, " ");
   if (!clientName) return { error: "Kunde ist erforderlich." };
   if (!input.date) return { error: "Datum ist erforderlich." };
   if (!input.time) return { error: "Uhrzeit ist erforderlich." };

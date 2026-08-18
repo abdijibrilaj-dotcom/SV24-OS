@@ -1,6 +1,7 @@
 import Link from "next/link";
 import clsx from "clsx";
 import { Card } from "@/components/ui/card";
+import { StatCard } from "@/components/ui/stat-card";
 import { Pill } from "@/components/ui/pill";
 import { getRevenueForPeriod, type Period } from "@/lib/queries/revenue";
 import { formatEUR } from "@/lib/format";
@@ -38,21 +39,13 @@ export default async function GewinnPage({
       </div>
 
       <div className="mb-6 grid grid-cols-3 gap-3.5">
-        <Card>
-          <div className="text-xs font-medium text-text-secondary">Umsatz</div>
-          <div className="mt-1 text-[25px] font-extrabold">{formatEUR(data.total)}</div>
-        </Card>
-        <Card>
-          <div className="text-xs font-medium text-text-secondary">Dolmetscherkosten</div>
-          <div className="mt-1 text-[25px] font-extrabold">{formatEUR(data.interpreterCosts)}</div>
-        </Card>
-        <Card>
-          <div className="text-xs font-medium text-text-secondary">Gewinn</div>
-          <div className="mt-1 text-[25px] font-extrabold">{formatEUR(data.profit)}</div>
+        <StatCard label="Umsatz" value={formatEUR(data.total)} />
+        <StatCard label="Dolmetscherkosten" value={formatEUR(data.interpreterCosts)} />
+        <StatCard label="Gewinn" value={formatEUR(data.profit)}>
           <Pill tone={data.marginPct >= 0 ? "green" : "red"} className="mt-2">
             {data.marginPct}% Marge
           </Pill>
-        </Card>
+        </StatCard>
       </div>
 
       <Card>

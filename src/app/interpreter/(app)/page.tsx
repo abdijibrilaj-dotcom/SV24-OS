@@ -1,9 +1,11 @@
 import Link from "next/link";
+import { Calendar } from "lucide-react";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { MobileScreen } from "@/components/mobile/mobile-screen";
 import { InterpreterTabBar } from "@/components/interpreter/interpreter-tab-bar";
 import { CardMobile } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
 import { getInterpreterHomeData } from "@/lib/queries/interpreter";
 import { formatDateShort } from "@/lib/format";
 import { confirmJobAction, declineJobAction } from "@/lib/actions/job-actions";
@@ -106,7 +108,7 @@ export default async function InterpreterHomePage() {
         </Link>
       ))}
       {data.upcomingConfirmed.length === 0 && (
-        <div className="py-3 text-[13px] text-text-tertiary">Keine anstehenden Termine.</div>
+        <EmptyState icon={Calendar} title="Keine anstehenden Termine." />
       )}
     </MobileScreen>
   );

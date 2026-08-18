@@ -1,6 +1,8 @@
+import { Users } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { Card } from "@/components/ui/card";
 import { Pill } from "@/components/ui/pill";
+import { EmptyState } from "@/components/ui/empty-state";
 import { roleMeta, userStatusMeta } from "@/lib/status";
 import { formatDate } from "@/lib/format";
 import { InviteUserModal } from "@/components/admin/invite-user-modal";
@@ -43,6 +45,13 @@ export default async function BenutzerPage() {
                   </tr>
                 );
               })}
+              {users.length === 0 && (
+                <tr>
+                  <td colSpan={5}>
+                    <EmptyState icon={Users} title="Noch keine Benutzer angelegt." />
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>

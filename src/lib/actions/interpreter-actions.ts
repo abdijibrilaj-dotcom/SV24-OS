@@ -80,3 +80,37 @@ export async function createInterpreterAction(input: {
 
   return { humanId, email, tempPassword };
 }
+
+/**
+ * Erzeugt ein neues temporäres Passwort für einen bestehenden Dolmetscher und
+ * setzt mustResetPassword wieder auf true. Das ursprüngliche temp. Passwort
+ * wird nach dem Anlegen nirgends gespeichert (nur als bcrypt-Hash) — das ist
+ * der einzige Weg, den Zugang wiederherzustellen, falls es verloren ging oder
+ * ein Login fehlschlägt.
+ */
+export async function resetInterpreterPasswordAction(
+  interpreterId: string
+): Promise<{ email: string; tempPassword: string } | { error: string }> {
+  const session = await auth();
+  if (session?.user.role !== Role.ADMIN && session?.user.role !== Role.BUERO) {
+    return { error: "Keine Berechtigung." };
+  }
+
+  const interpreter = await prisma.interpreter.findUnique({
+    where: { id: interpreterId },
+    include: { user: true },
+  });
+  if (!interpreter?.user) return { error: "Kein Benutzerkonto zu diesem Dolmetscher gefunden." };
+
+  const tempPassword = generateTempPassword();
+  const passwordHash = await bcrypt.hash(tempPassword, 12);
+
+  await prisma.user.update({
+    where: { id: interpreter.user.id },
+    data: { passwordHash, mustResetPassword: true, status: "AKTIV" },
+  });
+
+  revalidatePath("/admin/dolmetscher");
+
+  return { email: interpreter.user.email, tempPassword };
+}

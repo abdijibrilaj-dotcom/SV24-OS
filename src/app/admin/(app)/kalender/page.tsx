@@ -1,9 +1,10 @@
 import Link from "next/link";
 import clsx from "clsx";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, CalendarX2 } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { Card } from "@/components/ui/card";
 import { Pill } from "@/components/ui/pill";
+import { EmptyState } from "@/components/ui/empty-state";
 import { jobStatusMeta } from "@/lib/status";
 import { NewAppointmentModal } from "@/components/admin/new-appointment-modal";
 import {
@@ -124,7 +125,7 @@ export default async function KalenderPage({
             </tbody>
           </table>
           {jobsForSelectedDay.length === 0 && (
-            <div className="px-1 py-6 text-[13px] text-text-tertiary">Keine Termine an diesem Tag.</div>
+            <EmptyState icon={CalendarX2} title="Keine Termine an diesem Tag." />
           )}
         </div>
       </Card>

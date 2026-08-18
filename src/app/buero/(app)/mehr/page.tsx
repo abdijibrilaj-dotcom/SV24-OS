@@ -4,13 +4,15 @@ import { BueroTabBar } from "@/components/buero/buero-tab-bar";
 import { CardMobile } from "@/components/ui/card";
 import { initialsFromName } from "@/lib/ids";
 import { logoutAction } from "@/lib/actions/auth-actions";
+import { getUnreadCount } from "@/lib/queries/notifications";
 
 export default async function BueroMehrPage() {
   const session = await auth();
+  const unreadCount = await getUnreadCount(session!.user.id);
 
   return (
     <MobileScreen
-      header={{ mode: "brand", notifHref: "/buero/benachrichtigungen", unreadCount: 0 }}
+      header={{ mode: "brand", notifHref: "/buero/benachrichtigungen", unreadCount }}
       tabBar={<BueroTabBar />}
     >
       <CardMobile className="mb-4 flex items-center gap-3">
